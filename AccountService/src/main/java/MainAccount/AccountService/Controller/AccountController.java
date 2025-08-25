@@ -22,6 +22,7 @@ import java.util.UUID;
 @RestController
 
 @AllArgsConstructor
+@RequestMapping("/")
 public class AccountController {
 
 
