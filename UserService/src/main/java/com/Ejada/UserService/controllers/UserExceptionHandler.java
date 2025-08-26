@@ -4,6 +4,8 @@ import com.Ejada.UserService.domain.dto.responses.ErrorMessageResponse;
 import com.Ejada.UserService.exceptions.RegisterException;
 import com.Ejada.UserService.exceptions.UserLoginException;
 import com.Ejada.UserService.exceptions.UserNotFoundException;
+import com.Ejada.UserService.servieces.LoggingService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -11,6 +13,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 /** ExceptionHandler */
 @RestControllerAdvice
 public class UserExceptionHandler {
+  @Autowired LoggingService loggingService;
+
   @ExceptionHandler(UserLoginException.class)
   public ResponseEntity<ErrorMessageResponse> loginExceptionHandler() {
     ErrorMessageResponse errorMessageResponse =
@@ -19,6 +23,7 @@ public class UserExceptionHandler {
             .status(401)
             .message("Invalid username or password.")
             .build();
+    loggingService.publishResponse(errorMessageResponse);
     return ResponseEntity.status(401).body(errorMessageResponse);
   }
 
@@ -31,6 +36,8 @@ public class UserExceptionHandler {
             .status(409)
             .message("Username or email Already Exist")
             .build();
+
+    loggingService.publishResponse(errorMessageResponse);
     return ResponseEntity.status(409).body(errorMessageResponse);
   }
 
@@ -44,6 +51,8 @@ public class UserExceptionHandler {
             .status(404)
             .message(exception.getMessage())
             .build();
+
+    loggingService.publishResponse(errorMessageResponse);
     return ResponseEntity.status(404).body(errorMessageResponse);
   }
 }

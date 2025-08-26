@@ -29,7 +29,7 @@ public class KafkaConsumerConfig {
     configProps.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
     configProps.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
     configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-    configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, LoggingMessageDto.class.getName());
+    configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, LoggingMessageDto.class);
 
     return new DefaultKafkaConsumerFactory<>(configProps);
   }
@@ -44,7 +44,9 @@ public class KafkaConsumerConfig {
     factory.setCommonErrorHandler(
         new DefaultErrorHandler(
             (consumerRecord, exception) -> {
+              System.err.println(consumerRecord.value());
               System.err.println("Error: " + exception.getMessage());
+              exception.printStackTrace();
             }));
 
     return factory;
