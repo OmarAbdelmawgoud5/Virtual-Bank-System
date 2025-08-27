@@ -40,10 +40,7 @@ public class KafkaLoggingService {
 
             LogMessageDTO logMessage = new LogMessageDTO(
                     messageContent,
-                    "Request",
-                    serviceName,
-                    endpoint,
-                    method
+                    "Request"
             );
             sendLogMessage(logMessage);
         }catch (Exception e )
@@ -58,10 +55,7 @@ public class KafkaLoggingService {
 
             LogMessageDTO logMessage = new LogMessageDTO(
                     messageContent,
-                    "Response",
-                    serviceName,
-                    endpoint,
-                    method
+                    "Response"
             );
             sendLogMessage(logMessage);
 
