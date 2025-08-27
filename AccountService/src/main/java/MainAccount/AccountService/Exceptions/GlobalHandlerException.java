@@ -45,27 +45,27 @@ public class GlobalHandlerException {
                 .build();
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
-//    @ExceptionHandler(HttpMessageNotReadableException.class)
-//    public ResponseEntity<ErrorResponseDTO> handleInvalidEnum(HttpMessageNotReadableException ex) {
-//        if (ex.getCause() instanceof InvalidFormatException invalidFormatException) {
-//            String fieldName = invalidFormatException.getPath().get(0).getFieldName();
-//            String message = "Invalid value for field '" + fieldName + "'. Allowed values: SAVINGS, CHECKING.";
-//            ErrorResponseDTO errorResponse = ErrorResponseDTO.builder()
-//                    .status(400)
-//                    .error("Bad Request")
-//                    .message(message)
-//                    .build();
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-//        }
-//
-//        // Fallback for other message not readable errors
-//        ErrorResponseDTO errorResponse = ErrorResponseDTO.builder()
-//                .status(400)
-//                .error("Bad Request")
-//                .message("Malformed request. Please check your input.")
-//                .build();
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-//    }
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidEnum(HttpMessageNotReadableException ex) {
+        if (ex.getCause() instanceof InvalidFormatException invalidFormatException) {
+            String fieldName = invalidFormatException.getPath().get(0).getFieldName();
+            String message = "Invalid value for field '" + fieldName + "'. Allowed values: SAVINGS, CHECKING.";
+            ErrorResponseDTO errorResponse = ErrorResponseDTO.builder()
+                    .status(400)
+                    .error("Bad Request")
+                    .message(message)
+                    .build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+
+        // Fallback for other message not readable errors
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.builder()
+                .status(400)
+                .error("Bad Request")
+                .message("Malformed request. Please check your input.")
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
 
     @ExceptionHandler(AccountNotFoundByType.class)
     public ResponseEntity<ErrorResponseDTO> handleInvalidAccountType(AccountNotFoundByType ex) {

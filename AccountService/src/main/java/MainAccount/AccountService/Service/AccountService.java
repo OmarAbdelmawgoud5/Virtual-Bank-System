@@ -8,6 +8,8 @@ import MainAccount.AccountService.Exceptions.*;
 import MainAccount.AccountService.Repositry.AccountRepo;
 import lombok.AllArgsConstructor;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.logging.ErrorManager;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +30,8 @@ import java.util.stream.Collectors;
 public class AccountService {
     @Autowired
     private AccountRepo accountRepo;
+
+    private static final Logger log = LoggerFactory.getLogger(AccountService.class);
 
 
 
@@ -91,11 +96,8 @@ public class AccountService {
     @Transactional(readOnly = true)
     public List<AccountResponseDTO> getAccountsByUserId(UUID userId) {
         List<Account> accounts = accountRepo.findByUserId(userId);
-
-        if (accounts == null || accounts.isEmpty()) {
-            throw new UserNotFound(
-                    "No accounts found for user ID " + userId
-            );
+        if (!accountRepo.existsByUserId(userId)) {
+            throw new UserNotFound("User not found with id: " + userId);
         }
 
         return accounts.stream().map(account -> AccountResponseDTO.builder()
@@ -119,6 +121,18 @@ public class AccountService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Account with ID " + request.getToAccountId() + " not found."
                 ));
+
+        if (fromAccount.getBalance().compareTo(BigDecimal.ZERO) <= 0 ) {
+            throw new InvalidAccountDataException("Transfer amount must be greater than zero");
+        }
+
+        if (fromAccount.getAccountID().equals(toAccount.getAccountID())) {
+            throw new InvalidAccountDataException("Cannot transfer to the same account");
+        }
+        if (fromAccount.getStatus() != Account.AccountStatus.ACTIVE ||
+                toAccount.getStatus() != Account.AccountStatus.ACTIVE) {
+            throw new InvalidAccountDataException("One or both accounts are not active");
+        }
 
         // Check sufficient balance
         if (fromAccount.getBalance().compareTo(request.getAmount()) < 0) {
