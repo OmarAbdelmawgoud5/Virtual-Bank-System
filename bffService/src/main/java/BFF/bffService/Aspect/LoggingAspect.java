@@ -22,6 +22,7 @@ public class LoggingAspect {
     private static final Logger logger= LoggerFactory.getLogger(LoggingAspect.class);
 
     @Autowired
+    //Instead of local logs, requests and responses are streamed to Kafka
     private KafkaLoggingService kafkaLoggingService;
 
     //This advice wraps around controller methods, running before and after them.
