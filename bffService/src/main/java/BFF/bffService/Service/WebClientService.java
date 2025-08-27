@@ -3,6 +3,7 @@ package BFF.bffService.Service;
 import BFF.bffService.Dtos.Account;
 //import BFF.bffService.Dtos.Transaction;
 import BFF.bffService.Dtos.User;
+import BFF.bffService.Exceptions.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -69,7 +70,7 @@ public class WebClientService {
 
         switch (status) {
             case NOT_FOUND:
-                return new RuntimeException("Resource not found: " + message);
+                return new ResourceNotFoundException("User not found with provided ID");
             case BAD_REQUEST:
                 return new RuntimeException("Invalid request: " + message);
             case UNAUTHORIZED:
