@@ -153,6 +153,29 @@ public class AccountService {
         accountRepo.save(toAccount);
     }
 
+    // start - modified service method for active accounts with exception
+    @Transactional(readOnly = true)
+    public List<AccountResponseDTO> getActiveAccounts() {
+        List<Account> accounts = accountRepo.findByStatus(Account.AccountStatus.ACTIVE);
+
+        if (accounts.isEmpty()) {
+            throw new NoActiveAccountsException("No active accounts found.");
+        }
+
+        return accounts.stream()
+                .map(account -> AccountResponseDTO.builder()
+                        .accountId(account.getAccountID())
+                        .accountNumber(account.getAccountNumber())
+                        .accountType(account.getAccountType())
+                        .balance(account.getBalance())
+                        .status(account.getStatus())
+                        .message("Active account retrieved successfully.")
+                        .build()
+                )
+                .toList();
+    }
+// end - modified service method for active accounts with exception
+
 
 
 
