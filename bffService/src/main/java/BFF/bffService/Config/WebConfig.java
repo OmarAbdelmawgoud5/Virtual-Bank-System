@@ -21,8 +21,8 @@ public class WebConfig {
     @Value("${services.account.base-url}")
     private String accountServiceUrl;
 
-//    @Value("${services.transaction.base-url}")
-//    private String transactionServiceUrl;
+    @Value("${services.transaction.base-url}")
+    private String transactionServiceUrl;
 
     //createWebClient(String baseUrl) → creates a WebClient with:
     //
@@ -58,8 +58,8 @@ public class WebConfig {
         return createWebClient(accountServiceUrl);
     }
 
-//    @Bean
-//    public WebClient transactionServiceWebClient() {
-//        return createWebClient(transactionServiceUrl);
-//    }
+    @Bean
+    public WebClient transactionServiceWebClient() {
+        return createWebClient(transactionServiceUrl);
+    }
 }
