@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 public class TransactionController {
 
   private final TransactionService transactionService;
-  private final KafkaTemplate<String, String> kafkaTemplate;
 
   @PostMapping("/transactions/transfer/initiation")
   public ResponseEntity<TransactionResponseDTO> initiateTransfer(

@@ -1,62 +1,59 @@
 package com.Virtual_Bank_System.TransactionService.Service;
 
-import org.springframework.http.HttpStatus;
+import com.Virtual_Bank_System.TransactionService.Exception.AccountNotFoundById;
+import com.Virtual_Bank_System.TransactionService.Exception.AccountServiceNotWorkingException;
+import com.Virtual_Bank_System.TransactionService.Exception.InsufficientFundsException;
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.UUID;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
-
-import com.Virtual_Bank_System.TransactionService.DTO.TransferInitiationDTO;
-import com.Virtual_Bank_System.TransactionService.Exception.InsufficientFundsException;
-import com.Virtual_Bank_System.TransactionService.Exception.InvalidAccountException;
-
 import reactor.core.publisher.Mono;
-
-import java.math.BigDecimal;
-import java.util.UUID;
 
 @Service
 public class WebClientService {
-    private final WebClient accountServiceWebClient;
+  private final WebClient accountServiceWebClient;
 
-    public WebClientService(WebClient accountServiceWebClient) {
-        this.accountServiceWebClient = accountServiceWebClient;
-    }
+  public WebClientService(WebClient accountServiceWebClient) {
+    this.accountServiceWebClient = accountServiceWebClient;
+  }
 
-    public Mono<Boolean> validateAccount(UUID accountId, BigDecimal amount) {
-        return accountServiceWebClient.get()
-                .uri("/api/accounts/{accountId}/validate?amount={amount}", accountId, amount)
-                .retrieve()
-                .bodyToMono(Boolean.class)
-                .onErrorResume(WebClientResponseException.class, this::mapWebClientException);
-    }
+  public void validateAccount(UUID accountId) {
+    ResponseEntity<Map<String, String>> responseEntity =
+        accountServiceWebClient
+            .get()
+            .uri("/accounts/{accountId}", accountId)
+            .retrieve()
+            .onStatus(
+                HttpStatusCode::is4xxClientError,
+                clientResponse -> {
+                  return Mono.error(new AccountNotFoundById());
+                })
+            .onStatus(
+                HttpStatusCode::is5xxServerError,
+                clientResponse -> {
+                  return Mono.error(new AccountServiceNotWorkingException());
+                })
+            .toEntity(new ParameterizedTypeReference<Map<String, String>>() {})
+            .block();
+  }
 
-    public Mono<Void> transferBetweenAccounts(TransferInitiationDTO transferRequest) {
-        return accountServiceWebClient.post()
-                .uri("/api/accounts/transfer")
-                .bodyValue(transferRequest)
-                .retrieve()
-                .bodyToMono(Void.class)
-                .onErrorResume(WebClientResponseException.class, this::mapWebClientException);
-    }
+  public void validateAmount(UUID accountId, BigDecimal amount) {
 
-    public Mono<UUID> getAccountId(String accountNumber) {
-        return accountServiceWebClient.get()
-                .uri("/api/accounts/number/{accountNumber}", accountNumber)
-                .retrieve()
-                .bodyToMono(UUID.class)
-                .onErrorResume(WebClientResponseException.class, this::mapWebClientException);
+    ResponseEntity<Map<String, String>> responseEntity =
+        accountServiceWebClient
+            .get()
+            .uri("/accounts/{accountId}", accountId)
+            .retrieve()
+            .toEntity(new ParameterizedTypeReference<Map<String, String>>() {})
+            .block();
+    Map<String, String> accountDetails = responseEntity.getBody();
+    BigDecimal ownedMoney = new BigDecimal(accountDetails.get("balance"));
+    if (ownedMoney.compareTo(amount) < 0) {
+      throw new InsufficientFundsException();
     }
-
-    private <T> Mono<T> mapWebClientException(WebClientResponseException ex) {
-        if (ex.getStatusCode() == HttpStatus.NOT_FOUND) {
-            return Mono.error(new InvalidAccountException("Account not found"));
-        }
-        if (ex.getStatusCode() == HttpStatus.BAD_REQUEST) {
-            if (ex.getResponseBodyAsString().contains("insufficient funds")) {
-                return Mono.error(new InsufficientFundsException("Insufficient funds in account"));
-            }
-            return Mono.error(new InvalidAccountException("Invalid account details"));
-        }
-        return Mono.error(new RuntimeException("Error communicating with account service"));
-    }
+  }
 }
