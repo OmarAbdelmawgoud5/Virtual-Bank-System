@@ -187,13 +187,13 @@ public class AccountService {
 
 
 
-    @Scheduled(fixedRate = 180000) // 3 minutes (in milliseconds)
+    @Scheduled(fixedRate = 600000) // 3 minutes (in milliseconds)
     public void inactivateStaleAccounts()
     {
         System.out.println("Running inactivateStaleAccounts job at " + LocalDateTime.now());
 
         //I know Requirenment asked for 24 hours, but for testing purpose I am using 1 minute
-        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(3);
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(10);
         System.out.println("Looking for accounts with no transactions since: " + cutoff);
 
         // Get all accounts first to see what we're working with

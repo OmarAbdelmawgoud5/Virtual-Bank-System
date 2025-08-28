@@ -2,6 +2,7 @@ package BFF.bffService.Service;
 
 import BFF.bffService.Dtos.Account;
 //import BFF.bffService.Dtos.Transaction;
+import BFF.bffService.Dtos.Transaction;
 import BFF.bffService.Dtos.User;
 import BFF.bffService.Exceptions.ResourceNotFoundException;
 import org.slf4j.Logger;
@@ -22,14 +23,15 @@ public class WebClientService {
     private static final Logger logger = LoggerFactory.getLogger(WebClientService.class);
     private final WebClient userServiceClient;
     private final WebClient accountServiceClient;
-    //private final WebClient transactionServiceClient;
+    private final WebClient transactionServiceClient;
 
     public WebClientService(@Qualifier("userServiceWebClient")WebClient userServiceClient,
-                            @Qualifier("accountServiceWebClient")WebClient accountServiceClient
+                            @Qualifier("accountServiceWebClient")WebClient accountServiceClient,
+                            @Qualifier("transactionServiceWebClient")WebClient transactionServiceClient
                             ) {
         this.userServiceClient = userServiceClient;
         this.accountServiceClient = accountServiceClient;
-        //this.transactionServiceClient = transactionServiceClient;
+        this.transactionServiceClient = transactionServiceClient;
     }
     // ---- USER SERVICE ----
     public Mono<User> getUserById(UUID userId) {
@@ -51,15 +53,15 @@ public class WebClientService {
                 .collectList();
     }
 
-//    public Mono<List<Transaction>> getAccountTransactions(UUID accountId) {
-//
-//        return transactionServiceClient
-//                .get()
-//                .uri("/accounts/{accountId}/transactions", accountId)
-//                .retrieve()
-//                .bodyToMono(new ParameterizedTypeReference<List<Transaction>>() {});
-//
-//    }
+    public Mono<List<Transaction>> getAccountTransactions(UUID accountId) {
+
+        return transactionServiceClient
+                .get()
+                .uri("/accounts/{accountId}/transactions", accountId)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Transaction>>() {});
+
+    }
 
     private RuntimeException mapWebClientException(WebClientResponseException ex) {
         HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());

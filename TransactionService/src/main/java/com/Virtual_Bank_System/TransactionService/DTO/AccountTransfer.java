@@ -1,20 +1,21 @@
-package BFF.bffService.Dtos;
+package com.Virtual_Bank_System.TransactionService.DTO;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
+
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-
-public class Transaction {
-    private UUID transactionId;
+public class AccountTransfer {
+    @NotNull
+    private UUID fromAccountId;
+    @NotNull
     private UUID toAccountId;
+    @NotNull
     private BigDecimal amount;
-    private String description;
-    private LocalDateTime timestamp;
 }

@@ -23,11 +23,11 @@ public class BffService {
 
 
     public Mono<DashboardResponse> getDashboard(UUID userId) {
-        // Step 1: Fetch user information
+        // Step 1: Fetch user info
         Mono<User> userMono = webClientService.getUserById(userId)
                 .switchIfEmpty(Mono.error(new RuntimeException("User not found with id: " + userId)));
 
-        // Step 2: Fetch accounts for the user
+        // Step 2: Fetch user accounts
         Mono<List<Account>> accountsMono = webClientService.getAccountsByUserId(userId)
                 .flatMap(accounts -> {
                     if (accounts == null || accounts.isEmpty()) {
@@ -36,20 +36,31 @@ public class BffService {
                     return Mono.just(accounts);
                 });
 
-        // Step 3: Combine results
+        // Step 3: Combine user + accounts
         return Mono.zip(userMono, accountsMono)
-                .map(tuple -> {
+                .flatMap(tuple -> {
                     User user = tuple.getT1();
                     List<Account> accounts = tuple.getT2();
 
-                    return new DashboardResponse(
-                            user.getUserId(),
-                            user.getUsername(),
-                            user.getEmail(),
-                            user.getFirstName(),
-                            user.getLastName(),
-                            accounts
-                    );
+                    // Step 4: Fetch transactions for each account asynchronously
+                    return Flux.fromIterable(accounts)
+                            .flatMap(account ->
+                                    webClientService.getAccountTransactions(account.getAccountId())
+                                            .defaultIfEmpty(List.of()) // if no transactions, return empty list
+                                            .map(transactions -> {
+                                                account.setTransactions(transactions); // enrich account with transactions
+                                                return account;
+                                            })
+                            )
+                            .collectList()
+                            .map(enrichedAccounts -> new DashboardResponse(
+                                    user.getUserId(),
+                                    user.getUsername(),
+                                    user.getEmail(),
+                                    user.getFirstName(),
+                                    user.getLastName(),
+                                    enrichedAccounts
+                            ));
                 });
     }
 }

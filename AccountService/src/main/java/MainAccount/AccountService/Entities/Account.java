@@ -20,7 +20,7 @@ import java.util.UUID;
 public class Account {
     public enum AccountType {
         SAVINGS,
-        CHECKING
+        CHECKING,SYSTEM
     }
 
     public enum AccountStatus{
