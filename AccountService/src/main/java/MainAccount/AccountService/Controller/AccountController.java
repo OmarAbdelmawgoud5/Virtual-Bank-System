@@ -53,6 +53,14 @@ public class AccountController {
         return ResponseEntity.ok(accounts);
     }
 
+    // start - new controller endpoint for active accounts
+    @GetMapping("/accounts/active")
+    public ResponseEntity<List<AccountResponseDTO>> getActiveAccounts() {
+        List<AccountResponseDTO> accounts = accountService.getActiveAccounts();
+        return ResponseEntity.ok(accounts);
+    }
+// end - new controller endpoint for active accounts
+
 
 
 }

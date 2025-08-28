@@ -14,8 +14,11 @@ import java.util.UUID;
 
 public interface AccountRepo extends JpaRepository<Account, UUID> {
     Optional<Account> findByAccountNumber(String accountNumber);
+    // start - new repo method for active accounts
+    List<Account> findByStatus(Account.AccountStatus status);
+// end - new repo method for active accounts
 
-
+    boolean existsByUserId(UUID userId);
     List<Account> findByUserId(UUID userId);
     // Finds accounts that are ACTIVE and either lastTransactionDate is null or older than cutoff
 

@@ -18,6 +18,6 @@ public class Account {
     private String accountType;
     private BigDecimal balance;
     private String status;
-    private List<Transaction> transactions;
+    //private List<Transaction> transactions;
 
 }

@@ -5,6 +5,7 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
@@ -12,6 +13,7 @@ import reactor.netty.http.client.HttpClient;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
+@Configuration
 public class WebConfig {
     @Value("${services.user.base-url}")
     private String userServiceUrl;
@@ -19,8 +21,8 @@ public class WebConfig {
     @Value("${services.account.base-url}")
     private String accountServiceUrl;
 
-    @Value("${services.transaction.base-url}")
-    private String transactionServiceUrl;
+//    @Value("${services.transaction.base-url}")
+//    private String transactionServiceUrl;
 
     //createWebClient(String baseUrl) → creates a WebClient with:
     //
@@ -34,18 +36,18 @@ public class WebConfig {
     //WriteTimeoutHandler → stops sending if the client can’t write the request in time.
     private WebClient createWebClient(String baseUrl) {
         HttpClient httpClient = HttpClient.create()
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                .responseTimeout(Duration.ofMillis(5000))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)//Fail if connection not established within 10 seconds
+                .responseTimeout(Duration.ofMillis(10000))//Fail if no response within 10 seconds.
                 .doOnConnected(conn ->
-                        conn.addHandlerLast(new ReadTimeoutHandler(5000, TimeUnit.MILLISECONDS))
-                                .addHandlerLast(new WriteTimeoutHandler(5000, TimeUnit.MILLISECONDS)));
+                        conn.addHandlerLast(new ReadTimeoutHandler(10000, TimeUnit.MILLISECONDS))// abort if server take more than 10 seconds
+                                .addHandlerLast(new WriteTimeoutHandler(10000, TimeUnit.MILLISECONDS)));// abort if client takes more than 10 seconds
 
         return WebClient.builder()
-                .baseUrl(baseUrl)
-                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .baseUrl(baseUrl)// passes the specific http of serivce
+                .clientConnector(new ReactorClientHttpConnector(httpClient))//Tells WebClient to use the customized Netty client.
                 .build();
     }
-
+    //Each microservice has its own WebClient instance configured with its base URL and timeouts
     @Bean
     public WebClient userServiceWebClient() {
         return createWebClient(userServiceUrl);
@@ -56,8 +58,8 @@ public class WebConfig {
         return createWebClient(accountServiceUrl);
     }
 
-    @Bean
-    public WebClient transactionServiceWebClient() {
-        return createWebClient(transactionServiceUrl);
-    }
+//    @Bean
+//    public WebClient transactionServiceWebClient() {
+//        return createWebClient(transactionServiceUrl);
+//    }
 }
