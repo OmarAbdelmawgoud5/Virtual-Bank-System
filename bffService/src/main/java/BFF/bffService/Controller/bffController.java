@@ -26,7 +26,13 @@ public class bffController {
 
     @Autowired
     private final BffService bffService;
-
+    //A Mono is a reactive publisher that represents 0 or 1 item emitted asynchronously.
+    //
+    //Think of it as a promise of a single value (or empty) that will be available in the future.
+    //The method will return at most one ResponseEntity<Object>, wrapped inside a Mono.
+    //
+    //The actual computation (calling bffService.getDashboard(userId)) might not happen immediately—it’s asynchronous and only runs when subscribed.
+    //It returns a Mono<ResponseEntity<Object>> → meaning one asynchronous response that wraps an HTTP response with some body (dashboard or an error).
     @GetMapping("/bff/dashboard/{userId}")
     public Mono<ResponseEntity<Object>> getDashboard(@PathVariable UUID userId) {
 
@@ -34,6 +40,13 @@ public class bffController {
 
         return bffService.getDashboard(userId)
                 .map(dashboard -> ResponseEntity.ok().body((Object)dashboard))
+                //If the service call succeeds:
+                //
+                //Takes the dashboard object emitted by the Mono.
+                //
+                //Wraps it in a ResponseEntity with HTTP 200 OK status.
+                //
+                //Returns it as the response body
                 .onErrorResume(e -> {
                     log.error("Error processing dashboard request for userId: {}", userId, e);
                     HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;

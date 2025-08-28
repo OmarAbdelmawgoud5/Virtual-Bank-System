@@ -36,18 +36,18 @@ public class WebConfig {
     //WriteTimeoutHandler → stops sending if the client can’t write the request in time.
     private WebClient createWebClient(String baseUrl) {
         HttpClient httpClient = HttpClient.create()
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
-                .responseTimeout(Duration.ofMillis(10000))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)//Fail if connection not established within 10 seconds
+                .responseTimeout(Duration.ofMillis(10000))//Fail if no response within 10 seconds.
                 .doOnConnected(conn ->
-                        conn.addHandlerLast(new ReadTimeoutHandler(10000, TimeUnit.MILLISECONDS))
-                                .addHandlerLast(new WriteTimeoutHandler(10000, TimeUnit.MILLISECONDS)));
+                        conn.addHandlerLast(new ReadTimeoutHandler(10000, TimeUnit.MILLISECONDS))// abort if server take more than 10 seconds
+                                .addHandlerLast(new WriteTimeoutHandler(10000, TimeUnit.MILLISECONDS)));// abort if client takes more than 10 seconds
 
         return WebClient.builder()
-                .baseUrl(baseUrl)
-                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .baseUrl(baseUrl)// passes the specific http of serivce
+                .clientConnector(new ReactorClientHttpConnector(httpClient))//Tells WebClient to use the customized Netty client.
                 .build();
     }
-
+    //Each microservice has its own WebClient instance configured with its base URL and timeouts
     @Bean
     public WebClient userServiceWebClient() {
         return createWebClient(userServiceUrl);
